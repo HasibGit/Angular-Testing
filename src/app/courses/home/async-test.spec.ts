@@ -1,4 +1,6 @@
 import { fakeAsync, flush, flushMicrotasks, tick } from "@angular/core/testing";
+import { of } from "rxjs";
+import { delay } from "rxjs/operators";
 
 describe("Test Async Operations", () => {
   it("Should make it true", fakeAsync(() => {
@@ -45,30 +47,43 @@ describe("Test Async Operations", () => {
 
     expect(test).toBeTruthy();
   }));
+
+  it("promise + setTimeout()", fakeAsync(() => {
+    let counter = 0;
+
+    Promise.resolve().then(() => {
+      counter += 10;
+
+      setTimeout(() => {
+        counter += 1;
+      }, 1000);
+    });
+
+    expect(counter).toBe(0);
+
+    flushMicrotasks();
+
+    expect(counter).toBe(10);
+
+    tick(500);
+
+    expect(counter).toBe(10);
+
+    tick(500);
+
+    expect(counter).toBe(11);
+  }));
+
+  it("Testing observables", fakeAsync(() => {
+    let test = false;
+
+    const test$ = of(test).pipe(delay(1000));
+
+    test$.subscribe(() => {
+      test = true;
+    });
+
+    tick(1000);
+    expect(test).toBeTruthy();
+  }));
 });
-
-it("promise + setTimeout()", fakeAsync(() => {
-  let counter = 0;
-
-  Promise.resolve().then(() => {
-    counter += 10;
-
-    setTimeout(() => {
-      counter += 1;
-    }, 1000);
-  });
-
-  expect(counter).toBe(0);
-
-  flushMicrotasks();
-
-  expect(counter).toBe(10);
-
-  tick(500);
-
-  expect(counter).toBe(10);
-
-  tick(500);
-
-  expect(counter).toBe(11);
-}));
